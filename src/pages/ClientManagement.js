@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 
-interface Client {
-  id: string;
-  name: string;
-  domain: string;
-  status: 'active' | 'pending' | 'inactive';
-}
-
-const ClientManagement: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([]);
+const ClientManagement = () => {
+  const [clients, setClients] = useState([]);
   
   return (
     <div className="space-y-6">

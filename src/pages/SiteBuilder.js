@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SiteBuilder: React.FC = () => {
+const SiteBuilder = () => {
   const handleCreateSite = async () => {
     console.log('Creating new client site...');
   };

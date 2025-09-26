@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-5">
