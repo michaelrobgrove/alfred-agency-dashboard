@@ -2,7 +2,6 @@ import React from 'react';
 
 const SiteBuilder: React.FC = () => {
   const handleCreateSite = async () => {
-    // This will trigger the site creation process
     console.log('Creating new client site...');
   };
   
