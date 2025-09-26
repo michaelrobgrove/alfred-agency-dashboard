@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const ClientManagement = () => {
-  const [clients, setClients] = useState([]);
+  const [clients] = useState([]);
   
   return (
     <div className="space-y-6">
