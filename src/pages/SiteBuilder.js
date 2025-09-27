@@ -9,48 +9,65 @@ const SiteBuilder = () => {
   });
   const [creating, setCreating] = useState(false);
   const [step, setStep] = useState(1);
+  const [progress, setProgress] = useState('');
 
   const generateRepoName = (name) => {
     return `awd-client-${name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, '-')}`;
   };
 
-  const createGitHubRepo = async (repoName, clientName) => {
-    const response = await fetch('https://api.github.com/user/repos', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.REACT_APP_GITHUB_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: repoName,
-        description: `Website for ${clientName} - Managed by Alfred Web Design`,
-        private: false,
-        auto_init: true
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    return await response.json();
-  };
-
   const createClient = async (e) => {
     e.preventDefault();
     setCreating(true);
+    setStep(2);
 
     try {
-      setStep(2); // Show creating status
-
       const { data: { user } } = await supabase.auth.getUser();
       const repoName = generateRepoName(formData.clientName);
       const stagingDomain = `${repoName}.pages.dev`;
 
       // Step 1: Create GitHub repository
-      const repoData = await createGitHubRepo(repoName, formData.clientName);
-      
-      // Step 2: Add to database
+      setProgress('Creating GitHub repository...');
+      const repoResponse = await fetch('/api/create-repo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repoName,
+          clientName: formData.clientName,
+          description: `Professional website for ${formData.clientName}`
+        })
+      });
+
+      if (!repoResponse.ok) {
+        throw new Error('Failed to create GitHub repository');
+      }
+
+      const repoData = await repoResponse.json();
+      if (!repoData.success) {
+        throw new Error(repoData.error);
+      }
+
+      // Step 2: Create Cloudflare Pages project
+      setProgress('Setting up Cloudflare Pages deployment...');
+      const pagesResponse = await fetch('/api/create-pages-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repoName,
+          clientName: formData.clientName
+        })
+      });
+
+      if (!pagesResponse.ok) {
+        throw new Error('Failed to create Cloudflare Pages project');
+      }
+
+      const pagesData = await pagesResponse.json();
+      if (!pagesData.success) {
+        throw new Error(pagesData.error);
+      }
+
+      // Step 3: Add to database
+      setProgress('Adding client to database...');
       const { error } = await supabase
         .from('clients')
         .insert([{
@@ -67,7 +84,7 @@ const SiteBuilder = () => {
 
       if (error) throw error;
 
-      setStep(3); // Show success
+      setStep(3);
       
     } catch (error) {
       alert('Error: ' + error.message);
@@ -87,12 +104,13 @@ const SiteBuilder = () => {
           </svg>
           <span className="text-lg">Creating site for {formData.clientName}...</span>
         </div>
-        <p className="mt-2 text-gray-500">This may take a moment</p>
+        <p className="mt-2 text-gray-500">{progress}</p>
       </div>
     );
   }
 
   if (step === 3) {
+    const repoName = generateRepoName(formData.clientName);
     return (
       <div className="text-center py-12">
         <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
@@ -101,10 +119,11 @@ const SiteBuilder = () => {
           </svg>
         </div>
         <h3 className="text-lg font-medium text-gray-900">Site Created Successfully!</h3>
-        <p className="mt-2 text-gray-500">
-          Repository: {generateRepoName(formData.clientName)}<br/>
-          Next: Set up Hugo template and deploy to Cloudflare Pages
-        </p>
+        <div className="mt-4 text-sm text-gray-600 space-y-1">
+          <p>Repository: <a href={`https://github.com/michaelrobgrove/${repoName}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600">{repoName}</a></p>
+          <p>Staging URL: <a href={`https://${repoName}.pages.dev`} target="_blank" rel="noopener noreferrer" className="text-indigo-600">https://{repoName}.pages.dev</a></p>
+          <p>Admin Panel: <a href={`https://${repoName}.pages.dev/admin/`} target="_blank" rel="noopener noreferrer" className="text-indigo-600">https://{repoName}.pages.dev/admin/</a></p>
+        </div>
         <div className="mt-6 space-x-3">
           <button
             onClick={() => {setStep(1); setFormData({clientName: '', clientEmail: '', liveDomain: ''})}}
@@ -127,7 +146,7 @@ const SiteBuilder = () => {
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Create New Client Site</h3>
-        <p className="mt-2 text-sm text-gray-500">Automatically creates GitHub repository and database entry</p>
+        <p className="mt-2 text-sm text-gray-500">Automatically creates GitHub repository, Cloudflare Pages deployment, and Hugo website</p>
       </div>
 
       <div className="bg-white shadow sm:rounded-lg">
@@ -146,7 +165,7 @@ const SiteBuilder = () => {
                 />
                 {formData.clientName && (
                   <p className="mt-1 text-xs text-gray-500">
-                    Repository: {generateRepoName(formData.clientName)}
+                    Will create: {generateRepoName(formData.clientName)}
                   </p>
                 )}
               </div>
@@ -181,7 +200,7 @@ const SiteBuilder = () => {
                 disabled={creating || !formData.clientName || !formData.clientEmail}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
               >
-                {creating ? 'Creating Repository...' : 'Create Site & Repository'}
+                {creating ? 'Creating...' : 'Create Complete Site'}
               </button>
             </div>
           </form>
