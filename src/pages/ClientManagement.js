@@ -56,7 +56,6 @@ const ClientManagement = () => {
   };
 
   const editSite = (client) => {
-    // Open the admin panel for this client
     window.open(`https://${client.domain}/admin/`, '_blank');
   };
 
@@ -96,7 +95,7 @@ const ClientManagement = () => {
                   type="text"
                   value={newClient.name}
                   onChange={(e) => setNewClient({...newClient, name: e.target.value})}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 border"
                   required
                 />
               </div>
@@ -107,7 +106,7 @@ const ClientManagement = () => {
                   value={newClient.domain}
                   onChange={(e) => setNewClient({...newClient, domain: e.target.value})}
                   placeholder="example.com"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 border"
                   required
                 />
               </div>
@@ -118,7 +117,7 @@ const ClientManagement = () => {
                   value={newClient.repository_name}
                   onChange={(e) => setNewClient({...newClient, repository_name: e.target.value})}
                   placeholder="client-website"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 border"
                   required
                 />
               </div>
