@@ -58,6 +58,7 @@ const ClientManagement = () => {
             clients.map((client) => (
               <li key={client.id} className="px-6 py-4">
                 <div className="flex items-center justify-between">
+<<<<<<< HEAD
                   <div>
                     <p className="text-sm font-medium text-gray-900">{client.name}</p>
                     <p className="text-sm text-gray-500">{client.domain}</p>
@@ -84,6 +85,49 @@ const ClientManagement = () => {
                     >
                       View Site
                     </a>
+=======
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900">{client.name}</p>
+                      <div className="ml-2 flex-shrink-0 flex">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          client.status === 'active' ? 'bg-green-100 text-green-800' :
+                          client.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {client.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="sm:flex">
+                        <p className="flex items-center text-sm text-gray-500">
+                          <span className="mr-2">🌐</span>
+                          {client.domain}
+                        </p>
+                        <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                          <span className="mr-2">📁</span>
+                          {client.repository_name}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                        <button
+                          onClick={() => editSite(client)}
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          Edit Site
+                        </button>
+                        <a
+                          href={`https://${client.domain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          View Site
+                        </a>
+                      </div>
+                    </div>
+>>>>>>> 42f8869a26d0a5b6d97a5a6a037c664ebc4861af
                   </div>
                 </div>
               </li>
