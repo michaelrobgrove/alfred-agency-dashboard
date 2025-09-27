@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+// Replace with your actual Supabase URL and Anon Key
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const SiteBuilder = () => {
   const [formData, setFormData] = useState({
@@ -131,7 +137,7 @@ const SiteBuilder = () => {
           >
             Create Another
           </button>
-          
+          <a
             href="/clients"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
@@ -211,3 +217,4 @@ const SiteBuilder = () => {
 };
 
 export default SiteBuilder;
+
