@@ -8,9 +8,32 @@ const SiteBuilder = () => {
     liveDomain: ''
   });
   const [creating, setCreating] = useState(false);
+  const [step, setStep] = useState(1);
 
   const generateRepoName = (name) => {
     return `awd-client-${name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, '-')}`;
+  };
+
+  const createGitHubRepo = async (repoName, clientName) => {
+    const response = await fetch('https://api.github.com/user/repos', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.REACT_APP_GITHUB_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: repoName,
+        description: `Website for ${clientName} - Managed by Alfred Web Design`,
+        private: false,
+        auto_init: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    return await response.json();
   };
 
   const createClient = async (e) => {
@@ -18,15 +41,21 @@ const SiteBuilder = () => {
     setCreating(true);
 
     try {
+      setStep(2); // Show creating status
+
       const { data: { user } } = await supabase.auth.getUser();
       const repoName = generateRepoName(formData.clientName);
       const stagingDomain = `${repoName}.pages.dev`;
 
+      // Step 1: Create GitHub repository
+      const repoData = await createGitHubRepo(repoName, formData.clientName);
+      
+      // Step 2: Add to database
       const { error } = await supabase
         .from('clients')
         .insert([{
           name: formData.clientName,
-          domain: stagingDomain, // Fix: Add this required field
+          domain: stagingDomain,
           staging_domain: stagingDomain,
           live_domain: formData.liveDomain || null,
           repository_name: repoName,
@@ -38,20 +67,67 @@ const SiteBuilder = () => {
 
       if (error) throw error;
 
-      alert(`Client created! Repository name: ${repoName}\nNext: Create GitHub repo manually with this name.`);
-      setFormData({ clientName: '', clientEmail: '', liveDomain: '' });
+      setStep(3); // Show success
+      
     } catch (error) {
       alert('Error: ' + error.message);
+      setStep(1);
     } finally {
       setCreating(false);
     }
   };
 
+  if (step === 2) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-flex items-center">
+          <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-lg">Creating site for {formData.clientName}...</span>
+        </div>
+        <p className="mt-2 text-gray-500">This may take a moment</p>
+      </div>
+    );
+  }
+
+  if (step === 3) {
+    return (
+      <div className="text-center py-12">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+          <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900">Site Created Successfully!</h3>
+        <p className="mt-2 text-gray-500">
+          Repository: {generateRepoName(formData.clientName)}<br/>
+          Next: Set up Hugo template and deploy to Cloudflare Pages
+        </p>
+        <div className="mt-6 space-x-3">
+          <button
+            onClick={() => {setStep(1); setFormData({clientName: '', clientEmail: '', liveDomain: ''})}}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Create Another
+          </button>
+          
+            href="/clients"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            View Clients
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Create New Client Site</h3>
-        <p className="mt-2 text-sm text-gray-500">Add a new client to your dashboard</p>
+        <p className="mt-2 text-sm text-gray-500">Automatically creates GitHub repository and database entry</p>
       </div>
 
       <div className="bg-white shadow sm:rounded-lg">
@@ -105,7 +181,7 @@ const SiteBuilder = () => {
                 disabled={creating || !formData.clientName || !formData.clientEmail}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
               >
-                {creating ? 'Creating...' : 'Create Client'}
+                {creating ? 'Creating Repository...' : 'Create Site & Repository'}
               </button>
             </div>
           </form>
