@@ -26,6 +26,7 @@ const SiteBuilder = () => {
         .from('clients')
         .insert([{
           name: formData.clientName,
+          domain: stagingDomain, // Fix: Add this required field
           staging_domain: stagingDomain,
           live_domain: formData.liveDomain || null,
           repository_name: repoName,
