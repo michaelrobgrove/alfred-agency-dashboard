@@ -182,7 +182,7 @@ const ClientManagement = () => {
                         >
                           Edit Site
                         </button>
-                        
+                        <a
                           href={`https://${client.domain}`}
                           target="_blank"
                           rel="noopener noreferrer"
